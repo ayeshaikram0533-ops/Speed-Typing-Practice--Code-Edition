@@ -1,66 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Speed Typing Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 750px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        .stat-box .value.gold { color: #ffd93d; }
+        .stat-box .value.green { color: #2ed573; }
+        .stat-box .value.blue { color: #6bcbff; }
+        .stat-box .value.pink { color: #ff6b9d; }
+
+        .word-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .word-display .current-word {
+            font-size: 42px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-area {
+            margin-bottom: 20px;
+        }
+
+        #word-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 20px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        #word-input:focus {
+            border-color: #ffd93d;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+        }
+
+        #word-input:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 35px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .progress-section {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd93d, #f7971e);
+            border-radius: 20px;
+            transition: width 1s linear;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .high-score {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .high-score span {
+            color: #ffd93d;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .high-score .label {
+            color: #888;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .header h1 { font-size: 26px; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .stat-box .value { font-size: 22px; }
+            .word-display .current-word { font-size: 28px; }
+            #word-input { font-size: 18px; padding: 14px 16px; }
+            .btn { padding: 12px 25px; font-size: 14px; }
+            .word-display { min-height: 70px; padding: 18px 15px; }
+        }
+
+        @media (max-width: 400px) {
+            .word-display .current-word { font-size: 22px; }
+            .stat-box .value { font-size: 18px; }
+            .header h1 { font-size: 22px; }
+        }
+    </style>
 </head>
 <body>
+
     <div class="container">
         <div class="header">
             <h1>Speed Typing</h1>
-            <p>Type a word and press enter to submit</p>
+            <p>Type the word and press ENTER to submit</p>
         </div>
-        <div class="states">
+
+        <div class="stats">
             <div class="stat-box">
                 <div class="label">Time</div>
-                <div class="value" id="timer-display">30</div>
+                <div class="value gold" id="timer-display">30</div>
             </div>
-        <div class="stat-box">
-         <div class="label">WPM</div>   
-        <div class="value" id="wpm-display">0</div>
+            <div class="stat-box">
+                <div class="label">WPM</div>
+                <div class="value green" id="wpm-display">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Accuracy</div>
+                <div class="value blue" id="accuracy-display">100%</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Score</div>
+                <div class="value pink" id="score-display">0</div>
+            </div>
         </div>
-        <div class="stat-box">
-        <div class="label">Accuracy</div>
-        <div class="value" id="accuracy-display">100%</div>
+
+        <div class="word-display">
+            <div class="current-word" id="current-word">ready</div>
         </div>
-        <div class="stat-box">
-            <div class="label">Score</div>
-        <div class="value" id="score-display">0</div>
+
+        <div class="input-area">
+            <input type="text" id="word-input" placeholder="Type the word and press Enter..." disabled />
         </div>
-    </div>
 
-    <!-- word display -->
-     <div class="word-display">
-        <div class="current-word" id="current-word"
-        >ready</div>
-     </div>
+        <div class="buttons">
+            <button class="btn btn-start" id="start-btn">Start</button>
+            <button class="btn btn-reset" id="reset-btn">Reset</button>
+        </div>
 
-     <!-- input -->
-      <div class="input-area">
-        <input type="text" id="word-input" placeholder="Type a word and press Enter..." disabled />
-      </div>
-
-      <!-- Buttons -->
-       <div class="buttons">
-        <div class="button-start" id="start-button">Start</div>
-        <div class="button-reset" id="reset-button">Reset</div>
-       </div>
-
-        <!-- PROGRESS -->
         <div class="progress-section">
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
-            <div class="progress-text" id="progress-text">Ready to start!</div>
+            <div class="progress-text" id="progress-text">Ready to start</div>
         </div>
 
-        <!-- HIGH SCORE -->
         <div class="high-score">
-            <span class="label"> High Score: </span>
+            <span class="label">High Score: </span>
             <span id="high-score-display">0</span>
             <span class="label"> WPM</span>
         </div>
     </div>
+
+    <script>
+        
+        const WORDS = ['html', 'css', 'javascript', 'react', 'vue', 'angular', 'node', 'python', 'java', 'git', 'github', 'api', 'rest', 'json', 'ajax', 'async', 'promise', 'callback', 'closure', 'hoisting', 'dom', 'event', 'loop', 'function', 'variable', 'array', 'object', 'string', 'number', 'boolean', 'class', 'constructor', 'module', 'export', 'import', 'flexbox', 'grid', 'padding', 'margin', 'border', 'color', 'background', 'font', 'text', 'width', 'height', 'position', 'display', 'shadow', 'gradient', 'animation', 'transition', 'transform'];
+
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const inputField = document.getElementById('word-input');
+        const wordDisplay = document.getElementById('current-word');
+
+        let isGameRunning = false;
+        let currentWord = '';
+
+        startBtn.addEventListener('click', function() {
+            startBtn.textContent = 'Playing...';
+            startBtn.disabled = true;
+            isGameRunning = true;
+            const randomIndex = Math.floor(Math.random() * WORDS.length);
+            currentWord = WORDS[randomIndex];
+            wordDisplay.textContent = currentWord;
+            wordDisplay.style.color = '#ffffff';
+            inputField.disabled = false;
+            inputField.value = '';
+            inputField.focus();
+            document.getElementById('progress-text').textContent = 'Type the word';
+        });
+
+        resetBtn.addEventListener('click', function() {
+            isGameRunning = false;
+            startBtn.textContent = 'Start';
+            startBtn.disabled = false;
+            inputField.disabled = true;
+            inputField.value = '';
+            wordDisplay.textContent = 'ready';
+            wordDisplay.style.color = '#ffffff';
+            document.getElementById('progress-text').textContent = 'Ready to start';
+            document.getElementById('score-display').textContent = '0';
+            document.getElementById('progress-fill').style.width = '0%';
+        });
+
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (!isGameRunning) return;
+                const typed = inputField.value.trim();
+                if (typed === '') return;
+
+                if (typed === currentWord) {
+                    wordDisplay.style.color = '#2ed573';
+                    document.getElementById('progress-text').textContent = 'Correct';
+                    let currentScore = parseInt(document.getElementById('score-display').textContent) || 0;
+                    document.getElementById('score-display').textContent = currentScore + 1;
+
+                    setTimeout(function() {
+                        if (isGameRunning) {
+                            const randomIndex = Math.floor(Math.random() * WORDS.length);
+                            currentWord = WORDS[randomIndex];
+                            wordDisplay.textContent = currentWord;
+                            wordDisplay.style.color = '#ffffff';
+                            inputField.value = '';
+                            document.getElementById('progress-text').textContent = 'Type the word';
+                            inputField.focus();
+                        }
+                    }, 400);
+
+                } else {
+                    wordDisplay.style.color = '#ff4757';
+                    document.getElementById('progress-text').textContent = 'Wrong try again';
+
+                    setTimeout(function() {
+                        if (isGameRunning) {
+                            wordDisplay.style.color = '#ffffff';
+                            inputField.value = '';
+                            document.getElementById('progress-text').textContent = 'Type the word';
+                            inputField.focus();
+                        }
+                    }, 500);
+                }
+            }
+        });
+
+        console.log('Game loaded successfully');
+    </script>
+
 </body>
 </html>
