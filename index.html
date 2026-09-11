@@ -327,6 +327,8 @@
             inputField.value = '';
             inputField.focus();
             document.getElementById('progress-text').textContent = 'Type the word';
+
+            startTimer();
         });
 
         resetBtn.addEventListener('click', function() {
@@ -383,6 +385,55 @@
         });
 
         console.log('Game loaded successfully');
+
+        // module 3
+        let timeLeft = 30;
+        const maxTime = 30;
+        let timerInterval = null;
+
+        function startTimer(){
+            timeLeft = maxTime;
+            document.getElementById('timer-display').textContent = timeLeft;
+            document.getElementById('progress-fill').style.width = '0%';
+
+            timerInterval = setInterval(function(){
+                timeLeft--;
+                document.getElemtbyId('timer-display').textContent = timeLeft;
+
+                const elapsed = maxTime - timeLeft;
+                const progress = (elapsed/maxTime)* 100;
+                document.getElementById('progress-fill').style.width = progress + '%';
+
+                document.getElementById('progress-text').textContent = timeLeft + 's remaining';
+
+                if (timeLeft <=0 ){
+                    endGame();
+              }
+
+            },1000);
+        }
+
+        function endGame(){
+            clearInterval(timerInterval);
+            isGameRunning = false;
+             inputField.disabled = true;
+             startBtn.textContent = 'Play Again';
+             startBtn.disabled = false;
+
+             wordDisplay.textContent = 'Game Over';
+             wordDisplay.style.color = '#ffd93d';
+
+             document.getElementById('progress-text').textContent = 'Time Up';
+             document.getElementById('timer-display').textContent = '0';
+        }
+
+        function resetTimer(){
+            clearInterval(timerInterval);
+            timeLeft = maxTime;
+            document.getElementById('timer-display').textContent = timeLeft;
+            document.getElementById('progress-fill').style,width = '0%';
+            document.getElementById('progress-text').textContent = 'Ready to Start';
+        }
     </script>
 
 </body>
