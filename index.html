@@ -319,7 +319,12 @@
             startBtn.textContent = 'Playing...';
             startBtn.disabled = true;
             isGameRunning = true;
+            correctCount = 0;
+            totalAttempts = 0;
+            score = 0;
+            
             const randomIndex = Math.floor(Math.random() * WORDS.length);
+           
             currentWord = WORDS[randomIndex];
             wordDisplay.textContent = currentWord;
             wordDisplay.style.color = '#ffffff';
@@ -333,15 +338,20 @@
 
         resetBtn.addEventListener('click', function() {
             isGameRunning = false;
+            correctCount = 0;
+            totalAttempts = 0;
+            score = 0;
             startBtn.textContent = 'Start';
             startBtn.disabled = false;
             inputField.disabled = true;
             inputField.value = '';
             wordDisplay.textContent = 'ready';
             wordDisplay.style.color = '#ffffff';
-            document.getElementById('progress-text').textContent = 'Ready to start';
             document.getElementById('score-display').textContent = '0';
-            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('accuracy-display').textContent = '100%';
+            document.getElementById('wpm-display').textContent = '0';
+            document.getElementById('timer-display').textContent = '30';
+            resetTimer();
         });
 
         inputField.addEventListener('keydown', function(e) {
@@ -371,6 +381,7 @@
                 } else {
                     wordDisplay.style.color = '#ff4757';
                     document.getElementById('progress-text').textContent = 'Wrong try again';
+                    updateSatus();
 
                     setTimeout(function() {
                         if (isGameRunning) {
@@ -405,6 +416,7 @@
                 document.getElementById('progress-fill').style.width = progress + '%';
 
                 document.getElementById('progress-text').textContent = timeLeft + 's remaining';
+                updateSatus();
 
                 if (timeLeft <=0 ){
                     endGame();
@@ -414,17 +426,22 @@
         }
 
         function endGame(){
-            clearInterval(timerInterval);
-            isGameRunning = false;
-             inputField.disabled = true;
-             startBtn.textContent = 'Play Again';
-             startBtn.disabled = false;
-
-             wordDisplay.textContent = 'Game Over';
+           clearInterval(timerInterval);
+           isGameRunning = false;
+    
+           inputField.disabled = true;
+           startBtn.textContent = 'Play Again';
+           startBtn.disabled = false;
+    
+            const finalWPM = calculateWPM();
+           const finalAccuracy = calculateAccuracy();
+    
+             wordDisplay.textContent = 'Game Over - WPM: ' + finalWPM + ' - Accuracy: ' + finalAccuracy + '%';
              wordDisplay.style.color = '#ffd93d';
-
-             document.getElementById('progress-text').textContent = 'Time Up';
+             document.getElementById('progress-text').textContent = 'Time is up';
              document.getElementById('timer-display').textContent = '0';
+             document.getElementById('wpm-display').textContent = finalWPM;
+              document.getElementById('accuracy-display').textContent = finalAccuracy + '%';
         }
 
         function resetTimer(){
@@ -434,6 +451,42 @@
             document.getElementById('progress-fill').style,width = '0%';
             document.getElementById('progress-text').textContent = 'Ready to Start';
         }
+
+        //scoring and WPM count
+
+        let correctCount = 0;
+        let totalAttempts = 0;
+        let score = 0;
+
+        function calculateWPM(){
+            const elapsed = maxTime - timeLeft;
+            if (elapsed <= 0)return 0;
+            const minutes = elapsed/60 ;
+            return Math.round(correctCount/minutes);
+        }
+
+        function calculateAcurracy(){
+            if (totalAttempts === 0)return 100;
+            return Math.round(correctCount/totalAttempts)
+        }
+
+        function updateSatus(){
+            const wpm = calculateWPM();
+            const accuracy = calculateAcurracy();
+
+            document.getElementById('wpm-display').textContent  = wpm;
+            document.getElementById('accuracy-display').textContent  = accuracy + '%';
+            document.getElementById('score-display').textContent  = score;
+        }
+
+        function addScore(){
+            let points = 10;
+            const speedBonus = Math.floor(timeLeft/10)*2;
+            points += speedBonus;
+            score += points;
+            return points;
+        }
+
     </script>
 
 </body>
