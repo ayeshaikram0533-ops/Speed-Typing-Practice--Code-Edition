@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Speed Typing Practice</title>
     <style>
+        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -19,8 +20,10 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            margin: 0;
         }
 
+        /* ===== MAIN CONTAINER ===== */
         .container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -30,8 +33,10 @@
             width: 100%;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
         }
 
+        /* ===== HEADER ===== */
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -53,40 +58,137 @@
             text-transform: uppercase;
         }
 
+        /* ===== STATS BAR – circular ring style ===== */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 15px;
             margin-bottom: 25px;
         }
 
         .stat-box {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 12px 8px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+            padding: 0;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Ring wrapper – holds the ring + inner content */
+        .ring-wrapper {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The ring itself – thin border made with conic-gradient */
+        .ring-wrapper .ring-fill {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            /* Thin ring achieved with a small "mask" – the conic gradient only shows a small band */
+            background: conic-gradient(
+                #2ed573 var(--progress, 0%),
+                rgba(255, 255, 255, 0.06) var(--progress, 0%)
+            );
+            /* Use a radial mask to cut out the middle, leaving a thin ring */
+            -webkit-mask: radial-gradient(
+                circle at center,
+                transparent 74%,
+                #000 74%,
+                #000 100%
+            );
+            mask: radial-gradient(
+                circle at center,
+                transparent 74%,
+                #000 74%,
+                #000 100%
+            );
+            transition: background 0.5s ease;
+        }
+
+        /* Red state for timer ring when timeLeft <= 5 */
+        .ring-wrapper .ring-fill.danger {
+            background: conic-gradient(
+                #ff4757 var(--progress, 0%),
+                rgba(255, 255, 255, 0.06) var(--progress, 0%)
+            );
+        }
+
+        /* Inner circle that sits on top of the ring's hole */
+        .stat-box-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            position: relative;
+            z-index: 2;
         }
 
         .stat-box .label {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            color: #888;
-            letter-spacing: 1px;
+            color: #aaa;
+            letter-spacing: 0.8px;
+            line-height: 1.2;
+            text-align: center;
+            font-weight: 600;
         }
 
         .stat-box .value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #fff;
-            margin-top: 4px;
+            margin-top: 2px;
+            transition: all 0.3s ease;
+            line-height: 1;
         }
 
-        .stat-box .value.gold { color: #ffd93d; }
-        .stat-box .value.green { color: #2ed573; }
-        .stat-box .value.blue { color: #6bcbff; }
-        .stat-box .value.pink { color: #ff6b9d; }
+        .stat-box .value.gold {
+            color: #ffd93d;
+        }
+        .stat-box .value.green {
+            color: #2ed573;
+        }
+        .stat-box .value.blue {
+            color: #6bcbff;
+        }
+        .stat-box .value.pink {
+            color: #ff6b9d;
+        }
 
+        /* percentage ring for accuracy */
+        .stat-box .value .percent-ring {
+            display: inline-block;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: conic-gradient(#6bcbff var(--percent, 0%), rgba(255, 255, 255, 0.08) 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #6bcbff;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+
+        /* ===== WORD DISPLAY ===== */
         .word-display {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
@@ -98,6 +200,7 @@
             align-items: center;
             justify-content: center;
             border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
         }
 
         .word-display .current-word {
@@ -106,8 +209,44 @@
             color: #fff;
             letter-spacing: 3px;
             font-family: 'Courier New', monospace;
+            transition: all 0.2s ease;
+            word-break: break-all;
         }
 
+        .word-display .current-word.correct {
+            color: #2ed573;
+            animation: popCorrect 0.3s ease;
+        }
+
+        .word-display .current-word.wrong {
+            color: #ff4757;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes popCorrect {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-8px);
+            }
+            75% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* ===== INPUT AREA ===== */
         .input-area {
             margin-bottom: 20px;
         }
@@ -130,6 +269,7 @@
         #word-input:focus {
             border-color: #ffd93d;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         #word-input:disabled {
@@ -137,6 +277,17 @@
             cursor: not-allowed;
         }
 
+        #word-input.correct-input {
+            border-color: #2ed573 !important;
+            box-shadow: 0 0 30px rgba(46, 213, 115, 0.2) !important;
+        }
+
+        #word-input.wrong-input {
+            border-color: #ff4757 !important;
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.2) !important;
+        }
+
+        /* ===== BUTTONS ===== */
         .buttons {
             display: flex;
             gap: 12px;
@@ -170,6 +321,7 @@
         .btn-start:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
         }
 
         .btn-reset {
@@ -183,6 +335,7 @@
             transform: translateY(-3px);
         }
 
+        /* ===== PROGRESS BAR ===== */
         .progress-section {
             margin-top: 20px;
         }
@@ -193,6 +346,7 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
             overflow: hidden;
+            position: relative;
         }
 
         .progress-fill {
@@ -200,7 +354,7 @@
             background: linear-gradient(90deg, #ffd93d, #f7971e);
             border-radius: 20px;
             transition: width 1s linear;
-            width: 0%;
+            width: 100%;
         }
 
         .progress-text {
@@ -211,6 +365,7 @@
             letter-spacing: 1px;
         }
 
+        /* ===== HIGH SCORE ===== */
         .high-score {
             text-align: center;
             margin-top: 15px;
@@ -231,71 +386,179 @@
             font-size: 13px;
         }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
-            .container { padding: 20px; }
-            .header h1 { font-size: 26px; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .stat-box .value { font-size: 22px; }
-            .word-display .current-word { font-size: 28px; }
-            #word-input { font-size: 18px; padding: 14px 16px; }
-            .btn { padding: 12px 25px; font-size: 14px; }
-            .word-display { min-height: 70px; padding: 18px 15px; }
+            .container {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-box .value {
+                font-size: 20px;
+            }
+
+            .stat-box .label {
+                font-size: 9px;
+            }
+
+            .word-display .current-word {
+                font-size: 28px;
+            }
+
+            #word-input {
+                font-size: 18px;
+                padding: 14px 16px;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 14px;
+            }
+
+            .word-display {
+                min-height: 70px;
+                padding: 18px 15px;
+            }
+
+            .stat-box .value .percent-ring {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
         }
 
         @media (max-width: 400px) {
-            .word-display .current-word { font-size: 22px; }
-            .stat-box .value { font-size: 18px; }
-            .header h1 { font-size: 22px; }
+            .word-display .current-word {
+                font-size: 22px;
+            }
+
+            .stat-box .value {
+                font-size: 16px;
+            }
+
+            .stat-box .label {
+                font-size: 8px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .stat-box .value .percent-ring {
+                width: 24px;
+                height: 24px;
+                font-size: 9px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- HEADER -->
         <div class="header">
             <h1>Speed Typing</h1>
-            <p>Type the word and press ENTER to submit</p>
+            <p>Type the word and press ENTER to submit!</p>
         </div>
 
+        <!-- STATS (circular rings) -->
         <div class="stats">
-            <div class="stat-box">
-                <div class="label">Time</div>
-                <div class="value gold" id="timer-display">30</div>
+            <!-- TIMER with green ring that fills according to elapsed time -->
+            <div class="stat-box" id="timer-box">
+                <div class="ring-wrapper">
+                    <div class="ring-fill" id="timer-ring" style="--progress: 0%"></div>
+                    <div class="stat-box-inner">
+                        <div class="label">Time</div>
+                        <div class="value gold" id="timer-display">30</div>
+                    </div>
+                </div>
             </div>
+            <!-- WPM -->
             <div class="stat-box">
-                <div class="label">WPM</div>
-                <div class="value green" id="wpm-display">0</div>
+                <div class="ring-wrapper">
+                    <div class="ring-fill" style="--progress: 100%;"></div>
+                    <div class="stat-box-inner">
+                        <div class="label">WPM</div>
+                        <div class="value green" id="wpm-display">0</div>
+                    </div>
+                </div>
             </div>
+            <!-- ACCURACY -->
             <div class="stat-box">
-                <div class="label">Accuracy</div>
-                <div class="value blue" id="accuracy-display">100%</div>
+                <div class="ring-wrapper">
+                    <div class="ring-fill" style="--progress: 100%;"></div>
+                    <div class="stat-box-inner">
+                        <div class="label">Accuracy</div>
+                        <div class="value blue" id="accuracy-display">
+                            <span class="percent-ring" id="accuracy-ring" style="--percent: 100%">100%</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <!-- SCORE -->
             <div class="stat-box">
-                <div class="label">Score</div>
-                <div class="value pink" id="score-display">0</div>
+                <div class="ring-wrapper">
+                    <div class="ring-fill" style="--progress: 100%;"></div>
+                    <div class="stat-box-inner">
+                        <div class="label">Score</div>
+                        <div class="value pink" id="score-display">0</div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- WORD DISPLAY -->
         <div class="word-display">
             <div class="current-word" id="current-word">ready</div>
         </div>
 
+        <!-- INPUT -->
         <div class="input-area">
-            <input type="text" id="word-input" placeholder="Type the word and press Enter..." disabled />
+            <input
+            type="text"
+            id="word-input"
+            placeholder="Type the word and press Enter..."
+            autofocus
+            disabled
+            />
         </div>
 
+        <!-- BUTTONS -->
         <div class="buttons">
             <button class="btn btn-start" id="start-btn">Start</button>
             <button class="btn btn-reset" id="reset-btn">Reset</button>
         </div>
 
+        <!-- PROGRESS -->
         <div class="progress-section">
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
-            <div class="progress-text" id="progress-text">Ready to start</div>
+            <div class="progress-text" id="progress-text">Ready to start!</div>
         </div>
 
+        <!-- HIGH SCORE -->
         <div class="high-score">
             <span class="label">High Score: </span>
             <span id="high-score-display">0</span>
@@ -304,189 +567,368 @@
     </div>
 
     <script>
-        
-        const WORDS = ['html', 'css', 'javascript', 'react', 'vue', 'angular', 'node', 'python', 'java', 'git', 'github', 'api', 'rest', 'json', 'ajax', 'async', 'promise', 'callback', 'closure', 'hoisting', 'dom', 'event', 'loop', 'function', 'variable', 'array', 'object', 'string', 'number', 'boolean', 'class', 'constructor', 'module', 'export', 'import', 'flexbox', 'grid', 'padding', 'margin', 'border', 'color', 'background', 'font', 'text', 'width', 'height', 'position', 'display', 'shadow', 'gradient', 'animation', 'transition', 'transform'];
+        // ============================================================
+        //  SPEED TYPING GAME
+        //  - Timer ring fills green according to elapsed time
+        //  - Turns red when 5 seconds or less remain
+        //  - Thin ring border (achieved with CSS mask)
+        // ============================================================
 
-        const startBtn = document.getElementById('start-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const inputField = document.getElementById('word-input');
-        const wordDisplay = document.getElementById('current-word');
+        // ---------- WORD BANK ----------
+        const WORDS = [
+            'html', 'css', 'javascript', 'python', 'java', 'react',
+            'vue', 'angular', 'node', 'express', 'mongodb', 'sql',
+            'git', 'github', 'api', 'rest', 'json', 'ajax',
+            'async', 'promise', 'callback', 'closure', 'hoisting',
+            'dom', 'bom', 'event', 'loop', 'function', 'variable',
+            'array', 'object', 'string', 'number', 'boolean', 'null',
+            'undefined', 'class', 'constructor', 'prototype', 'module',
+            'export', 'import', 'default', 'spread', 'rest', 'destructure',
+            'ternary', 'arrow', 'template', 'literal', 'regex', 'map',
+            'filter', 'reduce', 'forEach', 'find', 'some', 'every',
+            'coding', 'programming', 'developer', 'software', 'web',
+            'application', 'design', 'responsive', 'flexbox', 'grid',
+            'animation', 'transition', 'transform', 'gradient', 'shadow',
+            'mobile', 'tablet', 'desktop', 'browser', 'chrome',
+            'firefox', 'safari', 'edge', 'opera', 'linux',
+            'windows', 'macos', 'terminal', 'command', 'docker', 'cloud',
+            'server', 'client', 'framework', 'library', 'component'
+        ];
 
-        let isGameRunning = false;
-        let currentWord = '';
+        // ---------- GAME STATE ----------
+        const state = {
+            currentWord: '',
+            score: 0,
+            correctCount: 0,
+            totalAttempts: 0,
+            wpm: 0,
+            accuracy: 100,
+            timeLeft: 30,
+            maxTime: 30,
+            isRunning: false,
+            isFinished: false,
+            timerInterval: null,
+            highScore: parseInt(localStorage.getItem('typingHighScore')) || 0,
+        };
 
-        startBtn.addEventListener('click', function() {
-            startBtn.textContent = 'Playing...';
-            startBtn.disabled = true;
-            isGameRunning = true;
-            correctCount = 0;
-            totalAttempts = 0;
-            score = 0;
-            
-            const randomIndex = Math.floor(Math.random() * WORDS.length);
-           
-            currentWord = WORDS[randomIndex];
-            wordDisplay.textContent = currentWord;
-            wordDisplay.style.color = '#ffffff';
-            inputField.disabled = false;
+        // ---------- DOM REFS ----------
+        const $ = (id) => document.getElementById(id);
+        const wordDisplay = $('current-word');
+        const inputField = $('word-input');
+        const timerDisplay = $('timer-display');
+        const timerRing = $('timer-ring');
+        const wpmDisplay = $('wpm-display');
+        const accuracyDisplay = $('accuracy-display');
+        const accuracyRing = $('accuracy-ring');
+        const scoreDisplay = $('score-display');
+        const startBtn = $('start-btn');
+        const resetBtn = $('reset-btn');
+        const progressFill = $('progress-fill');
+        const progressText = $('progress-text');
+        const highScoreDisplay = $('high-score-display');
+
+        // ---------- INIT ----------
+        function init() {
+            state.highScore = parseInt(localStorage.getItem('typingHighScore')) || 0;
+            highScoreDisplay.textContent = state.highScore;
+            resetGame();
+            showWord('ready');
+        }
+
+        // ---------- SHOW WORD ----------
+        function showWord(word) {
+            wordDisplay.textContent = word;
+            wordDisplay.className = 'current-word';
+        }
+
+        // ---------- GET RANDOM WORD ----------
+        function getRandomWord() {
+            return WORDS[Math.floor(Math.random() * WORDS.length)];
+        }
+
+        // ---------- NEW WORD ----------
+        function newWord() {
+            state.currentWord = getRandomWord();
+            showWord(state.currentWord);
             inputField.value = '';
+            inputField.disabled = false;
             inputField.focus();
-            document.getElementById('progress-text').textContent = 'Type the word';
+            inputField.className = '';
+        }
+
+        // ---------- UPDATE TIMER RING ----------
+        function updateTimerRing() {
+            if (!timerRing) return;
+
+            // Progress = elapsed time percentage (fills up as time passes)
+            const elapsed = state.maxTime - state.timeLeft;
+            const percent = (elapsed / state.maxTime) * 100;
+            timerRing.style.setProperty('--progress', percent + '%');
+
+            // Toggle danger class when 5 seconds or less remain
+            if (state.timeLeft <= 5 && state.timeLeft > 0) {
+                timerRing.classList.add('danger');
+            } else if (state.timeLeft > 5) {
+                timerRing.classList.remove('danger');
+            }
+            // When timeLeft is 0, keep whatever state (danger) for visual
+        }
+
+        // ---------- UPDATE UI ----------
+        function updateUI() {
+            timerDisplay.textContent = state.timeLeft;
+            wpmDisplay.textContent = state.wpm;
+            accuracyDisplay.textContent = state.accuracy + '%';
+            if (accuracyRing) {
+                accuracyRing.style.setProperty('--percent', state.accuracy + '%');
+                accuracyRing.textContent = state.accuracy + '%';
+            }
+            scoreDisplay.textContent = state.score;
+
+            // Update timer ring
+            updateTimerRing();
+
+            // Progress bar
+            const progress = ((state.maxTime - state.timeLeft) / state.maxTime) * 100;
+            progressFill.style.width = progress + '%';
+
+            // High score
+            if (state.wpm > state.highScore && state.isFinished) {
+                state.highScore = state.wpm;
+                localStorage.setItem('typingHighScore', state.highScore);
+                highScoreDisplay.textContent = state.highScore;
+            }
+        }
+
+        // ---------- CALCULATE STATS ----------
+        function calculateStats() {
+            const timeElapsed = state.maxTime - state.timeLeft;
+            if (timeElapsed > 0) {
+                const minutes = timeElapsed / 60;
+                state.wpm = Math.round(state.correctCount / minutes);
+            } else {
+                state.wpm = 0;
+            }
+
+            if (state.totalAttempts > 0) {
+                state.accuracy = Math.round((state.correctCount / state.totalAttempts) * 100);
+            } else {
+                state.accuracy = 100;
+            }
+
+            updateUI();
+        }
+
+        // ---------- CHECK WORD (on Enter) ----------
+        function checkWord() {
+            if (!state.isRunning || state.isFinished) return;
+
+            const typed = inputField.value.trim();
+
+            if (typed === '') return;
+
+            if (typed === state.currentWord) {
+                state.correctCount++;
+                state.score += 10 + Math.floor(state.timeLeft / 5);
+                state.totalAttempts++;
+
+                wordDisplay.className = 'current-word correct';
+                inputField.className = 'correct-input';
+
+                calculateStats();
+
+                setTimeout(() => {
+                    if (state.isRunning && !state.isFinished) {
+                        newWord();
+                    }
+                }, 200);
+
+            } else {
+                wordDisplay.className = 'current-word wrong';
+                inputField.className = 'wrong-input';
+                state.totalAttempts++;
+                calculateStats();
+
+                setTimeout(() => {
+                    if (state.isRunning && !state.isFinished) {
+                        inputField.value = '';
+                        wordDisplay.className = 'current-word';
+                        inputField.className = '';
+                        inputField.focus();
+                    }
+                }, 500);
+            }
+        }
+
+        // ---------- TIMER ----------
+        function startTimer() {
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+
+                if (state.timeLeft <= 0) {
+                    state.timeLeft = 0;
+                    endGame();
+                }
+
+                updateUI();
+
+                if (state.timeLeft > 0) {
+                    progressText.textContent = `${state.timeLeft}s remaining`;
+                } else {
+                    progressText.textContent = 'Time\'s up!';
+                }
+
+            }, 1000);
+        }
+
+        // ---------- START GAME ----------
+        function startGame() {
+            if (state.isRunning) return;
+
+            state.score = 0;
+            state.correctCount = 0;
+            state.totalAttempts = 0;
+            state.wpm = 0;
+            state.accuracy = 100;
+            state.timeLeft = state.maxTime;
+            state.isRunning = true;
+            state.isFinished = false;
+
+            startBtn.disabled = true;
+            startBtn.textContent = 'Playing...';
+            inputField.disabled = false;
+            inputField.focus();
+            progressText.textContent = 'Type and press Enter!';
+
+            state.currentWord = getRandomWord();
+            showWord(state.currentWord);
+            inputField.value = '';
+            inputField.className = '';
+
+            // Reset timer ring to 0% (empty, will fill as time passes)
+            if (timerRing) {
+                timerRing.classList.remove('danger');
+                timerRing.style.setProperty('--progress', '0%');
+            }
+
+            updateUI();
 
             startTimer();
-        });
+        }
 
-        resetBtn.addEventListener('click', function() {
-            isGameRunning = false;
-            correctCount = 0;
-            totalAttempts = 0;
-            score = 0;
-            startBtn.textContent = 'Start';
+        // ---------- END GAME ----------
+        function endGame() {
+            state.isRunning = false;
+            state.isFinished = true;
+            inputField.disabled = true;
+
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+
+            calculateStats();
+
+            if (state.wpm > state.highScore) {
+                state.highScore = state.wpm;
+                localStorage.setItem('typingHighScore', state.highScore);
+                highScoreDisplay.textContent = state.highScore;
+            }
+
             startBtn.disabled = false;
+            startBtn.textContent = 'Play Again';
+
+            let message = '';
+            if (state.wpm >= 40) {
+                message = 'Amazing speed! You\'re a typing pro!';
+            } else if (state.wpm >= 25) {
+                message = 'Great job! Keep practicing!';
+            } else if (state.wpm >= 15) {
+                message = 'Good start! Practice makes perfect!';
+            } else {
+                message = 'Keep learning! Speed will come with practice!';
+            }
+
+            progressText.textContent = `Game Over! ${message}`;
+            wordDisplay.className = 'current-word';
+
+            // Timer ring will be full (100% elapsed) and red because timeLeft = 0
+            if (timerRing) {
+                timerRing.classList.add('danger');
+                timerRing.style.setProperty('--progress', '100%');
+            }
+
+            if (state.wpm >= 30) {
+                document.querySelector('.container').style.boxShadow =
+                    '0 30px 80px rgba(255, 215, 0, 0.3)';
+                setTimeout(() => {
+                    document.querySelector('.container').style.boxShadow =
+                        '0 30px 80px rgba(0,0,0,0.6)';
+                }, 1500);
+            }
+        }
+
+        // ---------- RESET GAME ----------
+        function resetGame() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+
+            state.isRunning = false;
+            state.isFinished = false;
+            state.timeLeft = state.maxTime;
+            state.score = 0;
+            state.correctCount = 0;
+            state.totalAttempts = 0;
+            state.wpm = 0;
+            state.accuracy = 100;
+
             inputField.disabled = true;
             inputField.value = '';
-            wordDisplay.textContent = 'ready';
-            wordDisplay.style.color = '#ffffff';
-            document.getElementById('score-display').textContent = '0';
-            document.getElementById('accuracy-display').textContent = '100%';
-            document.getElementById('wpm-display').textContent = '0';
-            document.getElementById('timer-display').textContent = '30';
-            resetTimer();
-        });
+            inputField.className = '';
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start';
 
-        inputField.addEventListener('keydown', function(e) {
+            showWord('ready');
+            updateUI();
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Ready to start!';
+            highScoreDisplay.textContent = state.highScore;
+
+            // Reset timer ring to empty, remove danger
+            if (timerRing) {
+                timerRing.classList.remove('danger');
+                timerRing.style.setProperty('--progress', '0%');
+            }
+        }
+
+        // ---------- EVENT LISTENERS ----------
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+
+        inputField.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                if (!isGameRunning) return;
-                const typed = inputField.value.trim();
-                if (typed === '') return;
-
-                if (typed === currentWord) {
-                    wordDisplay.style.color = '#2ed573';
-                    document.getElementById('progress-text').textContent = 'Correct';
-                    let currentScore = parseInt(document.getElementById('score-display').textContent) || 0;
-                    document.getElementById('score-display').textContent = currentScore + 1;
-
-                    setTimeout(function() {
-                        if (isGameRunning) {
-                            const randomIndex = Math.floor(Math.random() * WORDS.length);
-                            currentWord = WORDS[randomIndex];
-                            wordDisplay.textContent = currentWord;
-                            wordDisplay.style.color = '#ffffff';
-                            inputField.value = '';
-                            document.getElementById('progress-text').textContent = 'Type the word';
-                            inputField.focus();
-                        }
-                    }, 400);
-
-                } else {
-                    wordDisplay.style.color = '#ff4757';
-                    document.getElementById('progress-text').textContent = 'Wrong try again';
-                    updateSatus();
-
-                    setTimeout(function() {
-                        if (isGameRunning) {
-                            wordDisplay.style.color = '#ffffff';
-                            inputField.value = '';
-                            document.getElementById('progress-text').textContent = 'Type the word';
-                            inputField.focus();
-                        }
-                    }, 500);
-                }
+                e.preventDefault();
+                checkWord();
             }
         });
 
-        console.log('Game loaded successfully');
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !state.isRunning && !state.isFinished) {
+                e.preventDefault();
+                startGame();
+            }
+            if (e.key === 'Escape' && state.isRunning) {
+                e.preventDefault();
+                endGame();
+            }
+        });
 
-        // module 3
-        let timeLeft = 30;
-        const maxTime = 30;
-        let timerInterval = null;
+        // ---------- START ----------
+        init();
 
-        function startTimer(){
-            timeLeft = maxTime;
-            document.getElementById('timer-display').textContent = timeLeft;
-            document.getElementById('progress-fill').style.width = '0%';
-
-            timerInterval = setInterval(function(){
-                timeLeft--;
-                document.getElemtbyId('timer-display').textContent = timeLeft;
-
-                const elapsed = maxTime - timeLeft;
-                const progress = (elapsed/maxTime)* 100;
-                document.getElementById('progress-fill').style.width = progress + '%';
-
-                document.getElementById('progress-text').textContent = timeLeft + 's remaining';
-                updateSatus();
-
-                if (timeLeft <=0 ){
-                    endGame();
-              }
-
-            },1000);
-        }
-
-        function endGame(){
-           clearInterval(timerInterval);
-           isGameRunning = false;
-    
-           inputField.disabled = true;
-           startBtn.textContent = 'Play Again';
-           startBtn.disabled = false;
-    
-            const finalWPM = calculateWPM();
-           const finalAccuracy = calculateAccuracy();
-    
-             wordDisplay.textContent = 'Game Over - WPM: ' + finalWPM + ' - Accuracy: ' + finalAccuracy + '%';
-             wordDisplay.style.color = '#ffd93d';
-             document.getElementById('progress-text').textContent = 'Time is up';
-             document.getElementById('timer-display').textContent = '0';
-             document.getElementById('wpm-display').textContent = finalWPM;
-              document.getElementById('accuracy-display').textContent = finalAccuracy + '%';
-        }
-
-        function resetTimer(){
-            clearInterval(timerInterval);
-            timeLeft = maxTime;
-            document.getElementById('timer-display').textContent = timeLeft;
-            document.getElementById('progress-fill').style,width = '0%';
-            document.getElementById('progress-text').textContent = 'Ready to Start';
-        }
-
-        //scoring and WPM count
-
-        let correctCount = 0;
-        let totalAttempts = 0;
-        let score = 0;
-
-        function calculateWPM(){
-            const elapsed = maxTime - timeLeft;
-            if (elapsed <= 0)return 0;
-            const minutes = elapsed/60 ;
-            return Math.round(correctCount/minutes);
-        }
-
-        function calculateAcurracy(){
-            if (totalAttempts === 0)return 100;
-            return Math.round(correctCount/totalAttempts)
-        }
-
-        function updateSatus(){
-            const wpm = calculateWPM();
-            const accuracy = calculateAcurracy();
-
-            document.getElementById('wpm-display').textContent  = wpm;
-            document.getElementById('accuracy-display').textContent  = accuracy + '%';
-            document.getElementById('score-display').textContent  = score;
-        }
-
-        function addScore(){
-            let points = 10;
-            const speedBonus = Math.floor(timeLeft/10)*2;
-            points += speedBonus;
-            score += points;
-            return points;
-        }
-
+        console.log('Speed Typing Game loaded! Click Start or press Enter to begin.');
     </script>
 
 </body>
